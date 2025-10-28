@@ -1,5 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
-from fastapi.security.http import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel, EmailStr
@@ -46,7 +47,8 @@ class ATSScoreResponse(BaseModel):
     keyword_matches: int
     total_keywords: int
 
-async def get_current_user_id(credentials: HTTPAuthCredentials = Depends(security)) -> int:
+async def get_current_user_id(credentials: HTTPAuthorizationCredentials
+ = Depends(security)) -> int:
     """Extract user ID from JWT token"""
     token = credentials.credentials
     payload = decode_token(token)
@@ -62,7 +64,8 @@ async def get_current_user_id(credentials: HTTPAuthCredentials = Depends(securit
 @router.post("/upload")
 async def upload_resume(
     file: UploadFile = File(...),
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials
+ = Depends(security),
     db: AsyncSession = Depends(get_db)
 ):
     """Upload and parse resume file"""
@@ -142,7 +145,8 @@ async def upload_resume(
 
 @router.get("/list")
 async def list_resumes(
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials
+ = Depends(security),
     db: AsyncSession = Depends(get_db)
 ):
     """Get all resumes for current user"""
@@ -175,7 +179,8 @@ async def list_resumes(
 @router.get("/{resume_id}")
 async def get_resume(
     resume_id: int,
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials
+ = Depends(security),
     db: AsyncSession = Depends(get_db)
 ):
     """Get specific resume details"""
@@ -219,7 +224,8 @@ async def get_resume(
 async def analyze_ats(
     resume_id: int,
     job_description: str,
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials
+ = Depends(security),
     db: AsyncSession = Depends(get_db)
 ):
     """Analyze resume for ATS compatibility"""
@@ -293,7 +299,8 @@ async def analyze_ats(
 @router.delete("/{resume_id}")
 async def delete_resume(
     resume_id: int,
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials
+ = Depends(security),
     db: AsyncSession = Depends(get_db)
 ):
     """Delete a resume"""

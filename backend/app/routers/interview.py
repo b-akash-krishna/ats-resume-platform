@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from fastapi.security.http import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel
@@ -47,7 +47,7 @@ class InterviewReportResponse(BaseModel):
     strengths: List[str]
     improvements: List[str]
 
-async def get_current_user_id(credentials: HTTPAuthCredentials = Depends(security)) -> int:
+async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(security)) -> int:
     """Extract user ID from JWT token"""
     token = credentials.credentials
     payload = decode_token(token)
@@ -63,7 +63,7 @@ async def get_current_user_id(credentials: HTTPAuthCredentials = Depends(securit
 @router.post("/setup")
 async def setup_interview(
     request: InterviewSetupRequest,
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
 ):
     """Setup mock interview session"""
@@ -125,7 +125,7 @@ async def setup_interview(
 @router.get("/questions/{interview_id}", response_model=List[QuestionResponse])
 async def get_interview_questions(
     interview_id: int,
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
 ):
     """Get questions for an interview session"""
@@ -177,7 +177,7 @@ async def submit_response(
     interview_id: int,
     question_id: int,
     request: SubmitResponseRequest,
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
 ):
     """Submit and analyze interview response"""
@@ -251,7 +251,7 @@ async def submit_response(
 @router.post("/complete/{interview_id}")
 async def complete_interview(
     interview_id: int,
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
 ):
     """Complete interview and generate report"""
@@ -338,7 +338,7 @@ async def complete_interview(
 @router.get("/report/{interview_id}", response_model=InterviewReportResponse)
 async def get_interview_report(
     interview_id: int,
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
 ):
     """Get interview report"""
@@ -407,7 +407,7 @@ async def get_interview_report(
 
 @router.get("/list")
 async def list_interviews(
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
 ):
     """Get all interviews for current user"""

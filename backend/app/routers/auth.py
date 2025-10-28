@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import HTTPBearer
-from fastapi.security.http import HTTPAuthorizationCredentials as HTTPAuthCredentials
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel, EmailStr
@@ -133,7 +133,10 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
         )
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user(credentials: HTTPAuthCredentials = Depends(security), db: AsyncSession = Depends(get_db)):
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: AsyncSession = Depends(get_db)
+):
     """Get current user information"""
     try:
         token = credentials.credentials
