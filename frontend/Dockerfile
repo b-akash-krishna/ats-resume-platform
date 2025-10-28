@@ -2,17 +2,14 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy root-level package files
 COPY package*.json ./
 
-# Install dependencies ignoring peer conflicts
+# Install dependencies including devDependencies
 RUN npm install --legacy-peer-deps
 
-# Copy the rest of the project (since your frontend is in root)
 COPY . .
 
-# Expose the port
-EXPOSE 3000
+EXPOSE 5173
 
-# Run Vite dev server accessible to host
-CMD ["npm", "run", "dev", "--", "--host"]
+# Use npx to run local vite
+CMD ["./node_modules/.bin/vite", "--host", "0.0.0.0"]
