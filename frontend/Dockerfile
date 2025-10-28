@@ -7,9 +7,11 @@ COPY package*.json ./
 # Install dependencies including devDependencies
 RUN npm install --legacy-peer-deps
 
+# Install vite globally
+RUN npm install -g vite
+
 COPY . .
 
 EXPOSE 5173
 
-# Use npx to run local vite
-CMD ["./node_modules/.bin/vite", "--host", "0.0.0.0"]
+CMD ["vite", "--host", "0.0.0.0"]

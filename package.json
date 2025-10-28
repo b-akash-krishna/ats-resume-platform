@@ -4,8 +4,8 @@
   "description": "AI-Powered ATS Resume Builder & Mock Interview Platform",
   "type": "module",
   "scripts": {
+    "dev": "npx vite --host 0.0.0.0",
     "build": "vite build",
-    "dev": "vite --host 0.0.0.0",
     "lint": "eslint src --ext js,jsx",
     "preview": "vite preview"
   },
