@@ -2,17 +2,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Copy root-level package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies ignoring peer conflicts
+RUN npm install --legacy-peer-deps
 
-# Copy application code
+# Copy the rest of the project (since your frontend is in root)
 COPY . .
 
-# Expose port
+# Expose the port
 EXPOSE 3000
 
-# Run development server
-CMD ["npm", "run", "dev"]
+# Run Vite dev server accessible to host
+CMD ["npm", "run", "dev", "--", "--host"]
