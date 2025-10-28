@@ -1,0 +1,83 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ats_postgres
+    environment:
+      POSTGRES_USER: ats_user
+      POSTGRES_PASSWORD: ats_password
+      POSTGRES_DB: ats_resume_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/seed_data.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ats_user -d ats_resume_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ats_network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ats_backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ats_user:ats_password@postgres:5432/ats_resume_db
+      SECRET_KEY: your-secret-key-change-in-production
+      OLLAMA_BASE_URL: http://ollama:11434
+      DEBUG: "True"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - ats_network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ats_frontend
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    depends_on:
+      - backend
+    command: npm run dev
+    networks:
+      - ats_network
+
+  # Ollama for Local LLM (Optional)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ats_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - ats_network
+
+volumes:
+  postgres_data:
+  ollama_data:
+
+networks:
+  ats_network:
+    driver: bridge
